@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>兴趣岛 - 艺术人格测评</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --sunflower-yellow: #FFD700;
+            --sunflower-yellow-light: #FFE44D;
+            --sunflower-yellow-dark: #FFC107;
+            --sunflower-yellow-pale: #FFF9E6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(180deg, #FFF9E6 0%, #FFF4CC 50%, #FFEFB3 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #2C3E50;
+        }
+        
+        .serif { font-family: 'Noto Serif SC', serif; }
+        
+        /* 开始页样式 */
+        .start-screen {
+            background: linear-gradient(180deg, 
+                rgba(255, 212, 0, 0.15) 0%, 
+                rgba(255, 228, 77, 0.1) 50%,
+                transparent 100%);
+            border-radius: 24px;
+            padding: 48px 32px;
+            text-align: center;
+        }
+        
+        .main-title {
+            font-size: 48px;
+            font-weight: 700;
+            color: #2C3E50;
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            color: #4A5568;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+        
+        /* 雷达图容器 */
+        .radar-container {
+            width: 100%;
+            max-width: 400px;
+            height: 400px;
+            margin: 32px auto;
+            position: relative;
+        }
+        
+        /* 按钮样式 */
+        .btn-primary {
+            background: linear-gradient(135deg, 
+                var(--sunflower-yellow) 0%, 
+                #FFE44D 50%,
+                var(--sunflower-yellow-dark) 100%);
+            color: #2C3E50;
+            padding: 16px 48px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 8px 24px rgba(255, 212, 0, 0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            width: 100%;
+            max-width: 320px;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(255, 212, 0, 0.5);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #2C3E50;
+            padding: 16px 48px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            border: 2px solid rgba(255, 212, 0, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            width: 100%;
+            max-width: 320px;
+            margin-top: 16px;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 248, 220, 0.8);
+            border-color: var(--sunflower-yellow);
+        }
+        
+        /* 问题卡片 */
+        .question-card {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.95) 0%, 
+                rgba(255, 253, 245, 0.9) 100%);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 12px 40px rgba(255, 212, 0, 0.15),
+                        0 4px 16px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+        }
+        
+        .question-title {
+            background: linear-gradient(135deg, 
+                rgba(255, 248, 220, 0.9) 0%, 
+                rgba(255, 240, 180, 0.8) 100%);
+            color: #2C3E50;
+            padding: 24px 28px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            border: 2px solid rgba(255, 212, 0, 0.3);
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+        
+        /* 选项按钮 */
+        .btn-option {
+            background: linear-gradient(135deg, 
+                rgba(255, 252, 240, 0.95) 0%, 
+                rgba(255, 248, 220, 0.9) 100%);
+            border: 2px solid rgba(255, 212, 0, 0.25);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            text-align: left;
+            color: #2C3E50;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(255, 212, 0, 0.1);
+        }
+        
+        .btn-option:hover {
+            border-color: var(--sunflower-yellow);
+            background: linear-gradient(135deg, 
+                rgba(255, 240, 180, 0.95) 0%, 
+                rgba(255, 232, 140, 0.9) 100%);
+            transform: translateX(4px);
+            box-shadow: 0 6px 20px rgba(255, 212, 0, 0.25);
+        }
+        
+        /* 进度条 */
+        .progress-container {
+            margin-bottom: 24px;
+        }
+        
+        .progress-text {
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 8px;
+        }
+        
+        .progress-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 212, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                var(--sunflower-yellow) 0%, 
+                var(--sunflower-yellow-light) 100%);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+            box-shadow: 0 2px 8px rgba(255, 212, 0, 0.4);
+        }
+        
+        /* 结果页样式 */
+        .result-screen {
+            background: linear-gradient(180deg, 
+                rgba(255, 255, 255, 0.95) 0%, 
+                rgba(255, 253, 245, 0.9) 100%);
+            border-radius: 24px;
+            padding: 40px 32px;
+            box-shadow: 0 16px 48px rgba(255, 212, 0, 0.15);
+        }
+        
+        .result-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .result-greeting {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2C3E50;
+            margin-bottom: 12px;
+        }
+        
+        .result-type {
+            font-size: 18px;
+            color: #4A5568;
+        }
+        
+        .result-type-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, 
+                rgba(255, 248, 220, 0.9) 0%, 
+                rgba(255, 240, 180, 0.8) 100%);
+            padding: 8px 20px;
+            border-radius: 20px;
+            margin-left: 8px;
+            font-weight: 600;
+            color: var(--sunflower-yellow-dark);
+            border: 2px solid rgba(255, 212, 0, 0.3);
+        }
+        
+        /* 分数卡片 */
+        .score-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 32px 0;
+        }
+        
+        .score-card {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.9) 0%, 
+                rgba(255, 252, 240, 0.8) 100%);
+            border: 2px solid rgba(255, 212, 0, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: left;
+        }
+        
+        .score-card-title {
+            font-size: 14px;
+            color: #2C3E50;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .score-card-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--sunflower-yellow-dark);
+            margin-bottom: 4px;
+        }
+        
+        .score-card-match {
+            font-size: 12px;
+            color: #6B7280;
+        }
+        
+        /* 详细描述 */
+        .detail-section {
+            margin-top: 32px;
+            text-align: left;
+        }
+        
+        .detail-item {
+            background: white;
+            border-left: 4px solid var(--sunflower-yellow);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(255, 212, 0, 0.1);
+        }
+        
+        .detail-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2C3E50;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .detail-title::before {
+            content: '|';
+            color: var(--sunflower-yellow);
+            font-size: 24px;
+            margin-right: 8px;
+            font-weight: 700;
+        }
+        
+        .detail-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--sunflower-yellow-dark);
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .detail-content {
+            font-size: 15px;
+            color: #4A5568;
+            line-height: 1.8;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 md:p-8">
+    
+    <!-- Header -->
+    <div id="page-header" class="w-full max-w-2xl text-center mb-8 fade-in">
+        <h2 class="text-sm tracking-[0.3em] text-gray-400 uppercase mb-4">Interest Island</h2>
+        <h1 class="serif text-3xl md:text-4xl font-bold text-gray-800">艺术人格测评</h1>
+    </div>
+
+    <!-- Main Container -->
+    <main id="app" class="w-full max-w-2xl">
+        
+        <!-- Start Screen -->
+        <div id="start-screen" class="start-screen fade-in" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh;">
+            <div style="text-align: center; margin-bottom: 48px;">
+                <h2 class="serif" style="font-size: 32px; font-weight: 700; color: #2C3E50; margin-bottom: 16px; line-height: 1.4;">
+                    退休不是休止符<br>
+                    而是华丽的序曲
+                </h2>
+                <p style="font-size: 18px; color: #6B7280; line-height: 1.6;">
+                    在<span style="background: linear-gradient(135deg, var(--sunflower-yellow-dark) 0%, var(--sunflower-yellow) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 600;">兴趣岛</span>，发现您独特的艺术人格
+                </p>
+            </div>
+            
+            <button onclick="startQuiz()" class="btn-primary" style="width: 100%; max-width: 280px;">
+                开启测评
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+            <div class="progress-container">
+                <div class="progress-text" id="progress-text">问题 1 / 10</div>
+                <div class="progress-bar-bg">
+                    <div id="progress-bar" class="progress-bar" style="width: 10%;"></div>
+                </div>
+            </div>
+            
+            <div class="question-card fade-in">
+                <div id="question-title" class="question-title">问题加载中...</div>
+                <div id="options-list">
+                    <!-- Options injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden result-screen fade-in">
+            <div class="text-center mb-8">
+                <p class="text-accent font-medium tracking-widest mb-2" style="background: linear-gradient(135deg, var(--sunflower-yellow-dark) 0%, var(--sunflower-yellow) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">测评结果</p>
+                <h2 id="result-personality" class="serif text-4xl font-bold mb-6 gradient-text">艺术家</h2>
+            </div>
+            
+            <!-- 雷达图 -->
+            <div class="radar-container" style="margin: 32px auto;">
+                <canvas id="result-radar"></canvas>
+            </div>
+            
+            <div class="text-left result-content-box p-6 rounded-lg mb-8" style="background: linear-gradient(135deg, rgba(255, 248, 220, 0.6) 0%, rgba(255, 240, 180, 0.5) 50%, rgba(255, 232, 140, 0.4) 100%); border-left: 4px solid; border-image: linear-gradient(180deg, var(--sunflower-yellow) 0%, var(--sunflower-yellow-light) 100%) 1; box-shadow: inset 4px 0 12px rgba(255, 212, 0, 0.15), 0 4px 12px rgba(255, 212, 0, 0.1);">
+                <h3 class="font-bold mb-2 text-gray-700" style="background: linear-gradient(135deg, rgba(255, 248, 220, 0.9) 0%, rgba(255, 240, 180, 0.8) 100%); padding: 8px 12px; border-radius: 8px; display: inline-block;">【人格画像】</h3>
+                <p id="result-desc" class="text-gray-600 leading-relaxed mt-4" style="background: linear-gradient(135deg, rgba(255, 252, 240, 0.8) 0%, rgba(255, 248, 220, 0.7) 100%); padding: 16px; border-radius: 12px; line-height: 1.8;"></p>
+            </div>
+
+            <div class="text-left mb-8">
+                <h3 class="font-bold mb-4 text-accent flex items-center" style="background: linear-gradient(135deg, var(--sunflower-yellow-dark) 0%, var(--sunflower-yellow) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    <span class="mr-2">✦</span> 第二人生建议
+                </h3>
+                <p id="result-advice" class="text-gray-600 leading-relaxed" style="background: linear-gradient(135deg, rgba(255, 252, 240, 0.8) 0%, rgba(255, 248, 220, 0.7) 100%); padding: 16px; border-radius: 12px; line-height: 1.8;"></p>
+            </div>
+
+            <button onclick="location.reload()" class="btn-secondary text-gray-600 px-8 py-3 rounded-full font-medium">
+                重新测评
+            </button>
+            
+            <div class="mt-12 pt-8 border-t border-gray-100 text-sm text-gray-400">
+                © 兴趣岛 | 赋能长者艺术梦想
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const questions = [
+            {
+                q: "当您漫步在清晨的公园，最吸引您目光的是？",
+                options: [
+                    { t: "光影洒在露珠上的微妙色彩", v: "creator" },
+                    { t: "晨练人群中某种充满力量的节奏", v: "performer" },
+                    { t: "路边一棵历经沧桑的老树故事", v: "recorder" },
+                    { t: "远方传来的悠扬笛声或歌声", v: "inheritor" }
+                ]
+            },
+            {
+                q: "退休后的社交场合，您更倾向于扮演什么角色？",
+                options: [
+                    { t: "安静的观察者，寻找有趣的角度", v: "recorder" },
+                    { t: "活动的组织者，带头展示才艺", v: "performer" },
+                    { t: "技艺的分享者，教大家一些门道", v: "inheritor" },
+                    { t: "新奇点子的提供者，尝试新玩法", v: "creator" }
+                ]
+            },
+            {
+                q: "如果去旅游，您的行李箱里最不可缺少的是？",
+                options: [
+                    { t: "专业的摄影器材或画笔", v: "recorder" },
+                    { t: "一套优雅的礼服或朗诵稿", v: "performer" },
+                    { t: "笔记本或一本厚重的历史书", v: "inheritor" },
+                    { t: "一件亲手改造或设计的时尚单品", v: "creator" }
+                ]
+            },
+            {
+                q: "面对快速发展的\"短视频\"时代，您的看法是？",
+                options: [
+                    { t: "学习剪辑，把生活拍成电影", v: "recorder" },
+                    { t: "这是展示我优美歌声或舞姿的舞台", v: "performer" },
+                    { t: "通过这个平台传承我的知识与心得", v: "inheritor" },
+                    { t: "研究各种滤镜和特效，玩出花样", v: "creator" }
+                ]
+            },
+            {
+                q: "您如何看待\"金钱\"与\"艺术兴趣\"的关系？",
+                options: [
+                    { t: "它是为了购买最好的画材和器材", v: "creator" },
+                    { t: "它是为了打造更好的演出效果和形象", v: "performer" },
+                    { t: "它是为了游历世界，积累见识", v: "recorder" },
+                    { t: "它是为了收藏和保护美好的事物", v: "inheritor" }
+                ]
+            },
+            {
+                q: "在您的书房/卧室里，什么东西占据了最显眼的位置？",
+                options: [
+                    { t: "各种充满创意的半成品或手工作品", v: "creator" },
+                    { t: "音响设备、乐谱或漂亮的演出照片", v: "performer" },
+                    { t: "堆叠整齐的相册或旅行纪念品", v: "recorder" },
+                    { t: "珍贵的藏书或传统的书法字画", v: "inheritor" }
+                ]
+            },
+            {
+                q: "当您的作品/才艺被别人点赞时，您最大的动力来自于？",
+                options: [
+                    { t: "\"您的想法真是太独特了！\"", v: "creator" },
+                    { t: "\"您的精气神太棒了，非常有魅力！\"", v: "performer" },
+                    { t: "\"您记录下了我们都没注意到的美。\"", v: "recorder" },
+                    { t: "\"听您一席话/看您这手艺，长见识了。\"", v: "inheritor" }
+                ]
+            },
+            {
+                q: "对于\"衰老\"这个话题，您的艺术化解读是？",
+                options: [
+                    { t: "一种更深刻、更具质感的审美体验", v: "creator" },
+                    { t: "人生这出大戏进入了最高潮的篇章", v: "performer" },
+                    { t: "一部沉甸甸、值得被细细翻阅的史书", v: "recorder" },
+                    { t: "一种智慧的沉淀与文明的传递", v: "inheritor" }
+                ]
+            },
+            {
+                q: "如果现在让您学习一门新技能，您最想学？",
+                options: [
+                    { t: "AI绘画或数字艺术设计", v: "creator" },
+                    { t: "声乐高级技巧或戏剧表演", v: "performer" },
+                    { t: "人文地理纪实或短视频导演", v: "recorder" },
+                    { t: "古典文学鉴赏或非遗手工艺", v: "inheritor" }
+                ]
+            },
+            {
+                q: "您理想中的\"第二人生\"关键词是？",
+                options: [
+                    { t: "突破", v: "creator" },
+                    { t: "绽放", v: "performer" },
+                    { t: "铭记", v: "recorder" },
+                    { t: "薪火", v: "inheritor" }
+                ]
+            }
+        ];
+
+        const personalityTypes = {
+            creator: { name: "灵感造物主", label: "创造型" },
+            performer: { name: "舞台常青树", label: "表演型" },
+            recorder: { name: "时光捕手", label: "记录型" },
+            inheritor: { name: "文明摆渡人", label: "传承型" }
+        };
+
+        const results = {
+            creator: {
+                title: "灵感造物主",
+                label: "创造型",
+                desc: "您拥有敏锐的观察力和不甘平凡的灵魂。在您看来，退休不是为了休息，而是为了终于有时间把脑海中的奇思妙想付诸实现。您对色彩、结构和新鲜技术有着天然的亲和力。",
+                advice: "您的第二人生适合投身于：创意绘画、手工艺设计、数字艺术。建议在兴趣岛尝试跨界艺术课，将您丰富的人生阅历转化为独特的视觉语言，您不仅仅是退休者，更是一位永恒的先锋派艺术家。"
+            },
+            performer: {
+                title: "舞台常青树",
+                label: "表演型",
+                desc: "您天生属于聚光灯。岁月的积淀不仅没有消磨您的魅力，反而为您增添了从容优雅的气质。通过歌声、朗诵或舞蹈，您能感知生命最激荡的共鸣。",
+                advice: "您的第二人生适合投身于：声乐、朗诵表演、模特走秀。建议在兴趣岛参与专业的大师班指导，在更大的舞台上展现高净值人群的知性美，用艺术的力量感染同龄人，重塑长者社会形象。"
+            },
+            recorder: {
+                title: "时光捕手",
+                label: "记录型",
+                desc: "您是生活的细腻记录者，擅长在平凡中发现不凡。您深刻理解\"当下\"的价值，比起亲身参与热闹，您更喜欢站在镜头后，用快门或笔触定格那些感动的瞬间。",
+                advice: "您的第二人生适合投身于：人文摄影、短视频导演、游记写作。建议加入兴趣岛的采风团，通过系统的镜头语言训练，将您的退休生活记录成一部部高质量的纪录片，成为家族精神的守护者。"
+            },
+            inheritor: {
+                title: "文明摆渡人",
+                label: "传承型",
+                desc: "您对传统和经典怀有深沉的敬畏。丰富的职场和人生经历让您成为了一座移动的宝库。您追求的艺术不仅仅是自娱自乐，更是一种文化和智慧的向下兼容与传递。",
+                advice: "您的第二人生适合投身于：书法篆刻、古典文化讲座、非遗研习。建议在兴趣岛担任文化大使或研学导师，在传承与教学中寻找获得感。您的艺术人生，是一场跨越时空的文明对话。"
+            }
+        };
+
+        let currentQuestion = 0;
+        let scores = { creator: 0, performer: 0, recorder: 0, inheritor: 0 };
+        let resultRadarChart = null;
+
+        function startQuiz() {
+            // 跳转到新页面（使用hash路由）
+            window.location.hash = 'quiz';
+            // 隐藏整个开始页面容器和顶部标题
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('page-header').style.display = 'none';
+            // 显示问题页面
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            // 滚动到顶部
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            showQuestion();
+        }
+        
+        // 页面加载时检查hash，如果是quiz则直接显示问题页面
+        window.addEventListener('load', function() {
+            if (window.location.hash === '#quiz') {
+                document.getElementById('start-screen').style.display = 'none';
+                document.getElementById('page-header').style.display = 'none';
+                document.getElementById('quiz-screen').classList.remove('hidden');
+                showQuestion();
+            }
+        });
+        
+        // 监听hash变化（浏览器前进后退）
+        window.addEventListener('hashchange', function() {
+            if (window.location.hash === '#quiz') {
+                document.getElementById('start-screen').style.display = 'none';
+                document.getElementById('page-header').style.display = 'none';
+                document.getElementById('quiz-screen').classList.remove('hidden');
+                if (currentQuestion === 0) {
+                    showQuestion();
+                }
+            } else {
+                document.getElementById('start-screen').style.display = 'flex';
+                document.getElementById('page-header').style.display = 'block';
+                document.getElementById('quiz-screen').classList.add('hidden');
+            }
+        });
+
+        function showQuestion() {
+            const qData = questions[currentQuestion];
+            document.getElementById('question-title').innerText = qData.q;
+            document.getElementById('progress-text').innerText = `问题 ${currentQuestion + 1} / ${questions.length}`;
+            document.getElementById('progress-bar').style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+            
+            const list = document.getElementById('options-list');
+            list.innerHTML = '';
+            
+            qData.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "btn-option";
+                btn.innerHTML = `
+                    <span>${opt.t}</span>
+                    <span style="opacity: 0; transition: opacity 0.3s;">→</span>
+                `;
+                btn.onmouseenter = function() {
+                    this.querySelector('span:last-child').style.opacity = '1';
+                };
+                btn.onmouseleave = function() {
+                    this.querySelector('span:last-child').style.opacity = '0';
+                };
+                btn.onclick = () => selectOption(opt.v);
+                list.appendChild(btn);
+            });
+        }
+
+        function selectOption(val) {
+            scores[val]++;
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                const container = document.querySelector('.question-card');
+                container.classList.remove('fade-in');
+                void container.offsetWidth;
+                container.classList.add('fade-in');
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            
+            // 找到最高分
+            let maxKey = 'creator';
+            for (let key in scores) {
+                if (scores[key] > scores[maxKey]) maxKey = key;
+            }
+            
+            const result = results[maxKey];
+            document.getElementById('result-personality').innerText = result.title;
+            document.getElementById('result-desc').innerText = result.desc;
+            document.getElementById('result-advice').innerText = result.advice;
+            
+            // 创建雷达图
+            createResultRadar();
+        }
+        
+        function createResultRadar() {
+            const ctx = document.getElementById('result-radar');
+            if (!ctx) return;
+            
+            // 销毁之前的图表
+            if (resultRadarChart) {
+                resultRadarChart.destroy();
+            }
+            
+            // 计算分数并归一化
+            const maxScore = Math.max(...Object.values(scores));
+            const normalizedScores = {
+                creator: maxScore > 0 ? (scores.creator / maxScore) * 30 : 0,
+                performer: maxScore > 0 ? (scores.performer / maxScore) * 30 : 0,
+                recorder: maxScore > 0 ? (scores.recorder / maxScore) * 30 : 0,
+                inheritor: maxScore > 0 ? (scores.inheritor / maxScore) * 30 : 0
+            };
+            
+            resultRadarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['创造型', '表演型', '记录型', '传承型'],
+                    datasets: [{
+                        label: '得分',
+                        data: [
+                            normalizedScores.creator,
+                            normalizedScores.performer,
+                            normalizedScores.recorder,
+                            normalizedScores.inheritor
+                        ],
+                        backgroundColor: 'rgba(255, 212, 0, 0.3)',
+                        borderColor: 'rgba(255, 212, 0, 0.8)',
+                        borderWidth: 3,
+                        pointBackgroundColor: 'rgba(255, 212, 0, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(255, 212, 0, 1)',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 30,
+                            ticks: {
+                                stepSize: 10,
+                                display: false
+                            },
+                            grid: {
+                                color: 'rgba(255, 212, 0, 0.2)'
+                            },
+                            pointLabels: {
+                                color: '#2C3E50',
+                                font: {
+                                    size: 14,
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>
