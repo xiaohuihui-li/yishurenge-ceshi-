@@ -347,17 +347,36 @@
         
         <!-- Start Screen -->
         <div id="start-screen" class="start-screen fade-in" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh;">
-            <div style="text-align: center; margin-bottom: 48px;">
+            <div style="text-align: center; margin-bottom: 32px;">
                 <h2 class="serif" style="font-size: 32px; font-weight: 700; color: #2C3E50; margin-bottom: 16px; line-height: 1.4;">
                     退休不是休止符<br>
                     而是华丽的序曲
                 </h2>
                 <p style="font-size: 18px; color: #6B7280; line-height: 1.6;">
-                    在<span style="background: linear-gradient(135deg, var(--sunflower-yellow-dark) 0%, var(--sunflower-yellow) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 600;">兴趣岛</span>，发现您独特的艺术人格
+                    在<span style="background: linear-gradient(135deg, var(--sunflower-yellow-dark) 0%, var(--sunflower-yellow) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 600;">兴趣岛</span>，发现您独特的艺术人格，开启第二人生新篇章。
                 </p>
             </div>
+
+            <!-- 产品介绍 -->
+            <div class="text-left w-full max-w-md p-6 rounded-lg mb-8" style="background: rgba(255,255,255,0.5);">
+                <h3 class="font-bold text-lg mb-3 text-gray-700">您将获得：</h3>
+                <ul class="space-y-2 text-gray-600">
+                    <li class="flex items-center"><span class="text-yellow-500 mr-2">✦</span> 基于心理学模型的科学人格画像</li>
+                    <li class="flex items-center"><span class="text-yellow-500 mr-2">✦</span> 精准的个人艺术能量雷达图分析</li>
+                    <li class="flex items-center"><span class="text-yellow-500 mr-2">✦</span> 专属的第二人生发展方向与建议</li>
+                </ul>
+            </div>
+
+            <!-- 兑换码 -->
+            <div id="redeem-container" class="w-full max-w-sm space-y-4 mb-6">
+                <div class="flex space-x-2">
+                    <input type="text" id="redeem-code-input" placeholder="请输入兑换码" class="flex-grow p-3 rounded-full border-2 border-yellow-300 focus:ring-2 focus:ring-yellow-400 focus:outline-none transition">
+                    <button id="redeem-btn" class="px-6 py-3 bg-yellow-400 text-white font-bold rounded-full hover:bg-yellow-500 transition">兑换</button>
+                </div>
+                <p id="redeem-message" class="text-sm text-center h-4"></p>
+            </div>
             
-            <button onclick="startQuiz()" class="btn-primary" style="width: 100%; max-width: 280px;">
+            <button id="start-quiz-btn" class="btn-primary" style="width: 100%; max-width: 280px;" disabled>
                 开启测评
             </button>
         </div>
@@ -544,6 +563,32 @@
         let currentQuestion = 0;
         let scores = { creator: 0, performer: 0, recorder: 0, inheritor: 0 };
         let resultRadarChart = null;
+
+        // 兑换码功能
+        const redeemCode = "第二人生";
+        const redeemInput = document.getElementById('redeem-code-input');
+        const redeemBtn = document.getElementById('redeem-btn');
+        const redeemMessage = document.getElementById('redeem-message');
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+
+        redeemBtn.addEventListener('click', () => {
+            if (redeemInput.value.trim() === redeemCode) {
+                redeemMessage.textContent = '兑换成功！';
+                redeemMessage.style.color = 'green';
+                startQuizBtn.disabled = false;
+                
+                // 动画效果
+                document.getElementById('redeem-container').style.display = 'none';
+                startQuizBtn.classList.add('fade-in');
+
+            } else {
+                redeemMessage.textContent = '兑换码无效，请重试';
+                redeemMessage.style.color = 'red';
+                redeemInput.focus();
+            }
+        });
+
+        startQuizBtn.addEventListener('click', startQuiz);
 
         function startQuiz() {
             // 跳转到新页面（使用hash路由）
