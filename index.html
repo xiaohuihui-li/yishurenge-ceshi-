@@ -332,6 +332,16 @@
                 transform: translateY(0);
             }
         }
+
+        .animate-shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4 md:p-8">
@@ -369,15 +379,12 @@
 
             <!-- 兑换码 -->
             <div id="redeem-container" class="w-full max-w-sm space-y-4 mb-6">
-                <div class="flex space-x-2">
-                    <input type="text" id="redeem-code-input" placeholder="请输入兑换码" class="flex-grow p-3 rounded-full border-2 border-yellow-300 focus:ring-2 focus:ring-yellow-400 focus:outline-none transition">
-                    <button id="redeem-btn" class="px-6 py-3 bg-yellow-400 text-white font-bold rounded-full hover:bg-yellow-500 transition">兑换</button>
-                </div>
+                <input type="text" id="redeem-code-input" placeholder="请输入兑换码" class="w-full p-3 rounded-full border-2 border-yellow-300 focus:ring-2 focus:ring-yellow-400 focus:outline-none transition">
                 <p id="redeem-message" class="text-sm text-center h-4"></p>
             </div>
             
-            <button id="start-quiz-btn" class="btn-primary" style="width: 100%; max-width: 280px;" disabled>
-                开启测评
+            <button id="start-quiz-btn" class="btn-primary" style="width: 100%; max-width: 280px;">
+                验证并开始测试
             </button>
         </div>
 
@@ -567,28 +574,23 @@
         // 兑换码功能
         const redeemCode = "第二人生";
         const redeemInput = document.getElementById('redeem-code-input');
-        const redeemBtn = document.getElementById('redeem-btn');
         const redeemMessage = document.getElementById('redeem-message');
         const startQuizBtn = document.getElementById('start-quiz-btn');
 
-        redeemBtn.addEventListener('click', () => {
+        startQuizBtn.addEventListener('click', () => {
             if (redeemInput.value.trim() === redeemCode) {
-                redeemMessage.textContent = '兑换成功！';
-                redeemMessage.style.color = 'green';
-                startQuizBtn.disabled = false;
-                
-                // 动画效果
-                document.getElementById('redeem-container').style.display = 'none';
-                startQuizBtn.classList.add('fade-in');
-
+                startQuiz();
             } else {
                 redeemMessage.textContent = '兑换码无效，请重试';
                 redeemMessage.style.color = 'red';
                 redeemInput.focus();
+                // 增加一个震动效果提示错误
+                redeemInput.classList.add('animate-shake');
+                setTimeout(() => {
+                    redeemInput.classList.remove('animate-shake');
+                }, 500);
             }
         });
-
-        startQuizBtn.addEventListener('click', startQuiz);
 
         function startQuiz() {
             // 跳转到新页面（使用hash路由）
